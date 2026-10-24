@@ -1,0 +1,10 @@
+import { Router } from 'express';
+import mongoose from 'mongoose';
+import Task from '../models/Task.js';
+const router=Router();
+router.get('/health',(_req,res)=>res.json({ok:true,database:mongoose.connection.readyState===1?'connected':'disconnected'}));
+router.get('/tasks',async(_req,res,next)=>{try{res.json(await Task.find().sort({createdAt:-1}))}catch(e){next(e)}});
+router.post('/tasks',async(req,res,next)=>{try{const task=await Task.create(req.body);res.status(201).json(task)}catch(e){next(e)}});
+router.patch('/tasks/:id',async(req,res,next)=>{try{const task=await Task.findByIdAndUpdate(req.params.id,req.body,{new:true,runValidators:true});if(!task)return res.status(404).json({message:'Task not found'});res.json(task)}catch(e){next(e)}});
+router.delete('/tasks/:id',async(req,res,next)=>{try{const task=await Task.findByIdAndDelete(req.params.id);if(!task)return res.status(404).json({message:'Task not found'});res.status(204).end()}catch(e){next(e)}});
+export default router;
