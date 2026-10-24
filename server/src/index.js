@@ -1,0 +1,13 @@
+import 'dotenv/config';
+import express from 'express';
+import cors from 'cors';
+import mongoose from 'mongoose';
+import tasks from './routes/tasks.js';
+const app=express();
+app.use(cors({origin:'http://localhost:5173'}));
+app.use(express.json());
+app.use('/api',tasks);
+app.use((err,_req,res,_next)=>{console.error(err.message);res.status(err.name==='ValidationError'?400:500).json({message:err.message||'Something went wrong'})});
+const port=process.env.PORT||5000;
+if(process.env.MONGODB_URI){mongoose.connect(process.env.MONGODB_URI).then(()=>console.log('MongoDB connected')).catch(err=>console.error('MongoDB connection failed:',err.message))}else console.warn('MONGODB_URI is missing. Add it to server/.env');
+app.listen(port,()=>console.log(`Daymark API listening at http://localhost:${port}`));
